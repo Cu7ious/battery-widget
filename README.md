@@ -1,14 +1,16 @@
-# Battery Widget 
+# Battery Widget
 
-<a href="https://crates.io/crates/battery-widget" alt="Battery Widget">
-  <img src="https://img.shields.io/badge/crates.io-v0.1.0-orange" />
-</a>
+[![Crates.io](https://img.shields.io/badge/crates.io-v0.2.0-orange)](https://crates.io/crates/battery-widget)
 
-Battery widget for command prompt. Written in Rust.
+A terminal battery indicator written in Rust.
+
+This CLI tool provides a simple battery widget for your command prompt. It currently supports macOS by reading system data via the `ioreg` command.
 
 <div align="center">
   <img alt="Battery Widget Preview" src="https://github.com/Cu7ious/nim-battery-widget/raw/master/image.png" />
 </div>
 
-Current version is dependent on `ioreg` tool, which means it supports macOS only.
-Next update will add linux support.
+## Platform Support
+
+- ✅ macOS — supported via `ioreg`
+- 🛠 Linux — support is coming in the next update

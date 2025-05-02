@@ -1,8 +1,44 @@
-fn main() {
-    use std::process::{Command, Stdio};
-    use std::str;
+use std::process::{Command, Stdio};
+use std::str;
 
-    // ioreg -rc AppleSmartBattery
+fn main() {
+    let (curr, max) = if cfg!(target_os = "macos") {
+        read_battery_macos()
+    } else if cfg!(target_os = "linux") {
+        ("0".to_string(), "1".to_string())
+    } else {
+        panic!("Unsupported OS");
+    };
+
+    let c = curr.parse::<f32>().unwrap();
+    let m = max.parse::<f32>().unwrap();
+
+    let charge = c / m;
+    let threshold = charge * 10.0;
+
+    let slots = 10;
+    let filled = (threshold.round() as u32).min(slots);
+    let empty = slots - filled;
+
+    let color_out = match filled {
+        0..=3 => "\x1b[;31m", // red
+        4..=6 => "\x1b[;33m", // yellow
+        _ => "\x1b[;32m",     // green
+    };
+    let color_reset = "\x1b[0m";
+
+    let out = format!(
+        "{}{}{}{}",
+        color_out,
+        "◼".repeat(filled as usize),
+        "◻".repeat(empty as usize),
+        color_reset
+    );
+
+    print!("{}", out);
+}
+
+fn read_battery_macos() -> (String, String) {
     let echo_child = Command::new("ioreg")
         .arg("-rc")
         .arg("AppleSmartBattery")
@@ -10,19 +46,16 @@ fn main() {
         .spawn()
         .expect("[Error]: Battery Widget Failed!");
 
-    let result = echo_child.wait_with_output()
-        .unwrap()
-        .stdout;
-
+    let result = echo_child.wait_with_output().unwrap().stdout;
     let print_result = str::from_utf8(&result).unwrap();
 
     let mut curr = "None";
-    let mut max  = "None";
+    let mut max = "None";
 
     for line in print_result.lines() {
         let l: Vec<&str> = line.split('=').collect();
 
-        if l[0].contains("CurrentCapacity") {
+        if !l[0].contains("AppleRaw") && l[0].contains("CurrentCapacity") {
             curr = l[1].trim();
             if max != "None" {
                 break;
@@ -37,40 +70,5 @@ fn main() {
         }
     }
 
-    let c = curr.parse::<f32>().unwrap();
-    let m = max.parse::<f32>().unwrap();
-
-    let charge = c / m;
-    let treshold = charge * 10.0;
-
-    let slots = 10;
-    let filled = treshold.round() as u32 * (slots / 10);
-    let empty = slots - filled;
-
-    fn string_from_char(c: char, mut qty: u32) -> String {
-        let mut result: Vec<char> = Vec::new();
-
-        while qty != 0 {
-            result.push(c);
-            qty -= 1;
-        }
-
-        return result.into_iter().collect();
-    }
-
-    let color_out: String =  match filled {
-        0..=3 => "\x1b[;31m".to_string(), // red
-        4..=6 => "\x1b[;33m".to_string(), // yellow
-        _ => "\x1b[;32m".to_string()      // green
-    };
-    let color_reset = "\x1b[0m".to_string();
-
-    let out = [
-        color_out,
-        string_from_char('◼', filled),
-        string_from_char('◻', empty),
-        color_reset
-    ].join("");
-
-    print!("{}", out);
+    (curr.to_string(), max.to_string())
 }
