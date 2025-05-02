@@ -1,6 +1,6 @@
 # Battery Widget
 
-[![Crates.io](https://img.shields.io/badge/crates.io-v0.2.0-orange)](https://crates.io/crates/battery-widget)
+[![Crates.io](https://img.shields.io/badge/crates.io-v0.1.0-orange)](https://crates.io/crates/battery-widget)
 
 A terminal battery indicator written in Rust.
 
